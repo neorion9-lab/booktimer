@@ -499,6 +499,15 @@
             </div>
 
             <div class="menu-section">
+                <div class="menu-title">👥 학생 수 변경</div>
+                <div style="font-size:13px; color:#555; margin-bottom:6px;">
+                    현재 학생 수: <b id="currentStudentCount">24</b>명
+                </div>
+                <input type="number" id="studentCountInput" class="input-field" placeholder="학생 수 입력 (1~50)" min="1" max="50">
+                <button class="menu-button" onclick="changeStudentCount()">학생 수 변경</button>
+            </div>
+
+            <div class="menu-section">
                 <div class="menu-title">✏️ 제목 변경</div>
                 <input type="text" id="titleInput" class="input-field" placeholder="새 제목 입력">
                 <button class="menu-button" onclick="changeTitle()">제목 변경</button>
@@ -531,7 +540,8 @@
         // 데이터 초기화
         let students = {};
         let studentIntervals = {}; // 학생별 interval ID 저장
-        let currentTimer = 15 * 60; 
+        let currentTimer = 15 * 60;
+        let studentCount = parseInt(localStorage.getItem('studentCount')) || 24;
         let isRankingVisible = true;
         const quotes = [
             '책 속에는 마법이 숨어있어 ✨',
@@ -543,7 +553,7 @@
         ];
 
         function initStudents() {
-            for (let i = 1; i <= 24; i++) {
+            for (let i = 1; i <= studentCount; i++) {
                 if (!students[i]) {
                     students[i] = {
                         number: i,
@@ -562,7 +572,7 @@
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = '';
 
-            for (let i = 1; i <= 24; i++) {
+            for (let i = 1; i <= studentCount; i++) {
                 const student = students[i];
                 const button = document.createElement('div');
                 button.className = `student-button ${student.active ? 'active' : ''}`;
@@ -641,7 +651,7 @@
         function stopAllTimers() {
             let hasActiveStudents = false;
             
-            for (let i = 1; i <= 24; i++) {
+            for (let i = 1; i <= studentCount; i++) {
                 if (students[i] && students[i].active) {
                     students[i].active = false;
                     if (studentIntervals[i]) {
@@ -676,8 +686,7 @@
 
         function updateTreeAndRanking() {
             let totalTime = 0;
-            // 버그 수정: i <= 16 에서 i <= 24 로 변경하여 17번~24번 학생의 누적 독서 시간도 학급 총합에 반영되도록 수정
-            for (let i = 1; i <= 24; i++) {
+            for (let i = 1; i <= studentCount; i++) {
                 if(students[i]) totalTime += students[i].totalTime;
             }
 
@@ -774,7 +783,7 @@
 
         function resetAllData() {
             if (confirm("정말 모든 학생의 누적 독서 시간 기록을 0으로 지우시겠습니까?\n(이 작업은 되돌릴 수 없습니다)")) {
-                for (let i = 1; i <= 24; i++) {
+                for (let i = 1; i <= studentCount; i++) {
                     if (students[i]) {
                         students[i].todayTime = 0;
                         students[i].totalTime = 0;
@@ -840,6 +849,48 @@
             }
         }
 
+        function changeStudentCount() {
+            const input = document.getElementById('studentCountInput');
+            const val = parseInt(input.value);
+            if (isNaN(val) || val < 1 || val > 50) {
+                alert('학생 수는 1명~50명 사이로 입력해주세요!');
+                return;
+            }
+            if (val === studentCount) {
+                alert('현재와 동일한 학생 수입니다.');
+                return;
+            }
+            const msg = val > studentCount
+                ? `학생 수를 ${studentCount}명에서 ${val}명으로 늘리겠습니까?\n(기존 기록은 유지됩니다)`
+                : `학생 수를 ${studentCount}명에서 ${val}명으로 줄이겠습니까?\n(${val+1}번~${studentCount}번 학생 버튼이 사라집니다)`;
+            if (!confirm(msg)) return;
+
+            // 줄어드는 학생 타이머 정지
+            for (let i = val + 1; i <= studentCount; i++) {
+                if (students[i] && students[i].active) {
+                    students[i].active = false;
+                    if (studentIntervals[i]) {
+                        clearInterval(studentIntervals[i]);
+                        delete studentIntervals[i];
+                    }
+                }
+            }
+            studentCount = val;
+            localStorage.setItem('studentCount', studentCount);
+            // 새로 추가된 학생 초기화
+            for (let i = 1; i <= studentCount; i++) {
+                if (!students[i]) {
+                    students[i] = { number: i, todayTime: 0, totalTime: 0, active: false };
+                }
+            }
+            document.getElementById('currentStudentCount').textContent = studentCount;
+            input.value = '';
+            renderStudents();
+            updateTreeAndRanking();
+            saveData();
+            alert(`학생 수가 ${studentCount}명으로 변경되었습니다.`);
+        }
+
         function saveData() {
             localStorage.setItem('students', JSON.stringify(students));
         }
@@ -848,7 +899,7 @@
             const saved = localStorage.getItem('students');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                for (let i = 1; i <= 24; i++) {
+                for (let i = 1; i <= studentCount; i++) {
                     if (parsed[i]) {
                         students[i] = parsed[i];
                         // 세션 로드시 active 상태는 꺼진 상태로 초기화 (타이머가 멈춰있는데 UI만 켜져있는 오류 방지)
@@ -869,6 +920,7 @@
         }
 
         initStudents();
+        document.getElementById('currentStudentCount').textContent = studentCount;
         updateTime();
         updateQuote();
         setInterval(updateTime, 1000);
