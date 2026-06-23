@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북(Book)적북적 자람나무 - 북타이머</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #e8f5e9;
+            overflow: hidden;
+        }
+
+        /* 헤더 */
+        header {
+            background-color: #b8e6c9;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 80px;
+        }
+
+        .header-title {
+            font-size: 48px;
+            color: #2d5016;
+            font-family: 'Jua', sans-serif;
+            font-weight: bold;
+        }
+
+        .header-time {
+            font-size: 32px;
+            color: #2d5016;
+            text-align: center;
+            flex: 1;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .header-settings {
+            width: 60px;
+            height: 60px;
+            background-color: #fff4e6;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .header-settings:hover {
+            background-color: #ffe0b2;
+        }
+
+        /* 메인 컨테이너 */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        /* 왼쪽 패널 (넓게 조정) */
+        .left-panel {
+            width: 78%;
+            background-color: #f5f5f5;
+            padding: 15px;
+            overflow-y: auto;
+            overflow-x: hidden; /* 가로 스크롤 방지 */
+            border-right: 2px solid #d0d0d0;
+        }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px; /* 간격 살짝 줄임 */
+        }
+
+        .student-button {
+            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+            border: 2px solid #ddc89b;
+            border-radius: 15px;
+            padding: 8px; /* 안쪽 여백 줄임 */
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            position: relative;
+        }
+
+        .student-button:hover {
+            background: linear-gradient(135deg, #ffe6cc 0%, #ffefdb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .student-button.active {
+            background: linear-gradient(135deg, #fff176 0%, #ffeb3b 100%);
+            border-color: #f9a825;
+            box-shadow: 0 4px 10px rgba(249, 168, 37, 0.3);
+        }
+
+        .student-number {
+            font-size: 32px; /* 한눈에 들어오게 폰트 크기 조정 */
+            color: #8b6914;
+            font-weight: bold;
+        }
+
+        .hourglass {
+            font-size: 24px; /* 크기 조정 */
+            display: inline-block;
+            animation: none;
+        }
+
+        .hourglass.rotating {
+            animation: rotate 2s linear infinite;
+        }
+
+        .student-status {
+            font-size: 11px; /* 크기 조정 */
+            color: #d32f2f;
+            font-weight: bold;
+            height: 14px;
+        }
+
+        .time-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 10px; /* 크기 조정 */
+            color: #555;
+            width: 100%;
+        }
+
+        .time-row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .time-label {
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2px 4px;
+            border-radius: 4px;
+            text-align: center;
+            width: 90%; /* 삐져나가지 않게 제한 */
+            white-space: nowrap;
+        }
+
+        /* 오른쪽 패널 (좁게 조정) */
+        .right-panel {
+            width: 22%;
+            background: linear-gradient(180deg, #e8f5e9 0%, #f1f8e9 100%);
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tree-container {
+            text-align: center;
+            margin: 10px 0;
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+        }
+
+        .tree-title {
+            font-size: 16px; /* 크기 조정 */
+            color: #2d5016;
+            margin-bottom: 5px;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .tree-visual {
+            font-size: 60px; /* 크기 조정 */
+            margin: 10px 0;
+        }
+
+        .tree-info {
+            font-size: 13px; /* 크기 조정 */
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .ranking {
+            width: 100%;
+            margin-top: 15px;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 12px;
+            border-radius: 15px;
+        }
+
+        .ranking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .ranking-title {
+            font-size: 14px; /* 크기 조정 */
+            color: #2d5016;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .toggle-btn {
+            background-color: #b8e6c9;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: 'Jua', sans-serif;
+            font-size: 11px; /* 크기 조정 */
+            color: #2d5016;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background-color: #9ccc65;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px;
+            margin: 4px 0;
+            background-color: #fff9c4;
+            border-radius: 8px;
+            font-size: 12px; /* 크기 조정 */
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 320px;
+            height: calc(100vh - 80px);
+            background: linear-gradient(180deg, #fff9e6 0%, #fffbf0 100%);
+            border-left: 3px solid #ddc89b;
+            padding: 20px;
+            overflow-y: auto;
+            transition: right 0.4s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-section {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #ddc89b;
+        }
+
+        .menu-title {
+            font-size: 16px;
+            color: #2d5016;
+            margin-bottom: 10px;
+            font-family: 'Jua', sans-serif;
+            font-weight: bold;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-button {
+            background-color: #fff4e6;
+            border: 2px solid #ddc89b;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Jua', sans-serif;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .menu-button:hover {
+            background-color: #ffe6cc;
+            transform: translateY(-2px);
+        }
+
+        .menu-button.active {
+            background-color: #fff176;
+            border-color: #f9a825;
+        }
+
+        /* 타이머 정지 버튼 */
+        .stop-btn {
+            background-color: #ffe0b2;
+            border-color: #fb8c00;
+            color: #e65100;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .stop-btn:hover {
+            background-color: #ffcc80;
+        }
+
+        /* 초기화 버튼 */
+        .reset-btn {
+            background-color: #ffcdd2;
+            border-color: #e53935;
+            color: #b71c1c;
+            width: 100%;
+        }
+
+        .reset-btn:hover {
+            background-color: #ef9a9a;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddc89b;
+            border-radius: 8px;
+            font-family: 'Jua', sans-serif;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+
+        /* 푸터 */
+        footer {
+            background: linear-gradient(180deg, #7cb342 0%, #558b2f 100%);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-family: 'Jua', sans-serif;
+            font-size: 14px;
+            border-top: 2px solid #33691e;
+        }
+
+        .footer-quote {
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fff9e6;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid #ddc89b;
+            max-width: 400px;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .character {
+            font-size: 120px;
+            margin: 20px 0;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .modal-message {
+            font-size: 18px;
+            color: #2d5016;
+            margin: 20px 0;
+            line-height: 1.6;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .modal-button {
+            background-color: #7cb342;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Jua', sans-serif;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .modal-button:hover {
+            background-color: #558b2f;
+            transform: translateY(-2px);
+        }
+
+        /* 모래시계 회전 애니메이션 */
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(180deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title" id="mainTitle">📖 북(Book)적북적 자람나무</div>
+        <div class="header-time" id="currentTime"></div>
+        <div class="header-settings" onclick="toggleSidebar()">⚙️</div>
+    </header>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="students-grid" id="studentsGrid"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="tree-container">
+                <div class="tree-title">우리 반 자람나무</div>
+                <div class="tree-visual" id="treeVisual">🌱</div>
+                <div id="appleStudents" style="display:none; font-size:13px; color:#c62828; font-family:'Jua',sans-serif; margin-top:4px; line-height:1.6;"></div>
+                <div class="tree-info" id="treeInfo">새싹 단계 (0시간)</div>
+            </div>
+
+            <div class="ranking">
+                <div class="ranking-header">
+                    <div class="ranking-title">📚 상위 독서 학생</div>
+                    <button class="toggle-btn" onclick="toggleRanking()" id="rankingToggleBtn">숨기기</button>
+                </div>
+                <div id="rankingList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">⏱️ 퀵 타이머</div>
+                <div class="menu-buttons">
+                    <button class="menu-button" onclick="setTimer(10)">10분</button>
+                    <button class="menu-button" onclick="setTimer(15)">15분</button>
+                    <button class="menu-button" onclick="setTimer(20)">20분</button>
+                    <button class="menu-button" onclick="toggleCustomTimer()">직접 입력</button>
+                    <input type="number" id="customTimerInput" class="input-field" placeholder="1-60분" min="1" max="60" style="display:none;">
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">🌳 성장 단계</div>
+                <div class="tree-info" id="detailedTreeInfo">새싹 단계</div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">🤫 소음도 측정</div>
+                <div style="font-size: 14px; color: #555;">
+                    <div id="noiseLevel">😊 조용함</div>
+                    <div style="margin-top: 8px; font-size: 12px;">마이크 권한이 필요합니다.</div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">✏️ 제목 변경</div>
+                <input type="text" id="titleInput" class="input-field" placeholder="새 제목 입력">
+                <button class="menu-button" onclick="changeTitle()">제목 변경</button>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-title">🔄 관리</div>
+                <button class="menu-button stop-btn" onclick="stopAllTimers()">모든 학생 활동 종료</button>
+                <button class="menu-button reset-btn" onclick="resetAllData()">모든 학생 기록 초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-quote" id="footerQuote">책 속에는 마법이 숨어있어 ✨</div>
+    </footer>
+
+    <div class="modal" id="timerModal">
+        <div class="modal-content">
+            <div class="character" id="character">🌱</div>
+            <div class="modal-message" id="modalMessage">
+                띵동! 오늘 읽은 책 덕분에 내가 점점 자라고 있어!<br>
+                잊어버리기 전에 독서 통장에 한 줄 느낌을 채워줘!
+            </div>
+            <button class="modal-button" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        // 데이터 초기화
+        let students = {};
+        let studentIntervals = {}; // 학생별 interval ID 저장
+        let currentTimer = 15 * 60; 
+        let isRankingVisible = true;
+        const quotes = [
+            '책 속에는 마법이 숨어있어 ✨',
+            '오늘도 생각이 한 뼘 자라는 중 📚',
+            '한 권의 책은 새로운 세계로의 문 🚪',
+            '마음을 담아 읽는 독서 ❤️',
+            '책 친구와 함께 성장해요 👫',
+            '그림책도 좋고, 글책도 좋고, 모든 책이 다 좋아! 📖'
+        ];
+
+        function initStudents() {
+            for (let i = 1; i <= 24; i++) {
+                if (!students[i]) {
+                    students[i] = {
+                        number: i,
+                        todayTime: 0,
+                        totalTime: 0,
+                        active: false
+                    };
+                }
+            }
+            loadData();
+            renderStudents();
+            updateTreeAndRanking();
+        }
+
+        function renderStudents() {
+            const grid = document.getElementById('studentsGrid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= 24; i++) {
+                const student = students[i];
+                const button = document.createElement('div');
+                button.className = `student-button ${student.active ? 'active' : ''}`;
+
+                const todayMinutes = Math.floor(student.todayTime / 60);
+                const todaySeconds = student.todayTime % 60;
+                const totalMinutes = Math.floor(student.totalTime / 60);
+                const todayDisplay = todayMinutes > 0
+                    ? `${todayMinutes}분 ${todaySeconds}초`
+                    : `${todaySeconds}초`;
+
+                button.innerHTML = `
+                    <div class="student-number">${i}</div>
+                    <div class="hourglass ${student.active ? 'rotating' : ''}">⏳</div>
+                    <div class="student-status">${student.active ? '활동중' : ''}</div>
+                    <div class="time-info">
+                        <div class="time-row">
+                            <span class="time-label">오늘: ${todayDisplay}</span>
+                        </div>
+                        <div class="time-row">
+                            <span class="time-label">누적: ${totalMinutes}분</span>
+                        </div>
+                    </div>
+                `;
+
+                button.onclick = () => toggleStudent(i);
+                grid.appendChild(button);
+            }
+        }
+
+        function toggleStudent(studentNum) {
+            const student = students[studentNum];
+
+            if (!student.active) {
+                student.active = true;
+                startStudentTimer(studentNum);
+            } else {
+                student.active = false;
+                stopStudentTimer(studentNum);
+                showCompletionMessage();
+            }
+
+            renderStudents();
+            saveData();
+        }
+
+        function startStudentTimer(studentNum) {
+            // 혹시 기존 interval이 있으면 먼저 제거
+            if (studentIntervals[studentNum]) {
+                clearInterval(studentIntervals[studentNum]);
+                delete studentIntervals[studentNum];
+            }
+            const student = students[studentNum];
+            studentIntervals[studentNum] = setInterval(() => {
+                if (!student.active) {
+                    clearInterval(studentIntervals[studentNum]);
+                    delete studentIntervals[studentNum];
+                    return;
+                }
+                student.todayTime++;
+                student.totalTime++;
+                renderStudents();
+                updateTreeAndRanking();
+                saveData();
+            }, 1000);
+        }
+
+        function stopStudentTimer(studentNum) {
+            students[studentNum].active = false;
+            if (studentIntervals[studentNum]) {
+                clearInterval(studentIntervals[studentNum]);
+                delete studentIntervals[studentNum];
+            }
+        }
+
+        function stopAllTimers() {
+            let hasActiveStudents = false;
+            
+            for (let i = 1; i <= 24; i++) {
+                if (students[i] && students[i].active) {
+                    students[i].active = false;
+                    if (studentIntervals[i]) {
+                        clearInterval(studentIntervals[i]);
+                        delete studentIntervals[i];
+                    }
+                    hasActiveStudents = true;
+                }
+            }
+
+            if (hasActiveStudents) {
+                saveData();
+                renderStudents();
+                alert("활동 중이던 모든 학생의 타이머가 종료되었습니다.");
+                toggleSidebar();
+            } else {
+                alert("현재 활동 중인 학생이 없습니다.");
+            }
+        }
+
+        function showCompletionMessage() {
+            const characters = ['🌱', '🌿', '🌳', '🌲'];
+            const char = characters[Math.floor(Math.random() * characters.length)];
+
+            document.getElementById('character').textContent = char;
+            document.getElementById('timerModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('timerModal').classList.remove('show');
+        }
+
+        function updateTreeAndRanking() {
+            let totalTime = 0;
+            // 버그 수정: i <= 16 에서 i <= 24 로 변경하여 17번~24번 학생의 누적 독서 시간도 학급 총합에 반영되도록 수정
+            for (let i = 1; i <= 24; i++) {
+                if(students[i]) totalTime += students[i].totalTime;
+            }
+
+            const totalMinutes = Math.floor(totalTime / 60);
+
+            let stage, emoji, stageName;
+            const appleStudentsEl = document.getElementById('appleStudents');
+
+            if (totalMinutes < 250) {
+                stage = 0;
+                emoji = '🌱';
+                stageName = '새싹 단계';
+                document.getElementById('treeVisual').textContent = emoji;
+                appleStudentsEl.style.display = 'none';
+            } else if (totalMinutes < 500) {
+                stage = 1;
+                emoji = '🌿';
+                stageName = '잎사귀 나무';
+                document.getElementById('treeVisual').textContent = emoji;
+                appleStudentsEl.style.display = 'none';
+            } else if (totalMinutes < 750) {
+                stage = 2;
+                emoji = '🌳';
+                stageName = '꽃 피는 나무';
+                document.getElementById('treeVisual').textContent = emoji;
+                appleStudentsEl.style.display = 'none';
+            } else if (totalMinutes < 1000) {
+                stage = 3;
+                emoji = '🌲';
+                stageName = '열매 맺는 나무';
+                document.getElementById('treeVisual').textContent = emoji;
+                appleStudentsEl.style.display = 'none';
+            } else {
+                stage = 4;
+                emoji = '🌳';
+                stageName = '사과 열매 나무';
+                document.getElementById('treeVisual').textContent = emoji;
+
+                // 독서 누적 시간 상위 학생(최대 5명)을 사과 이모지와 번호로 표시
+                const topStudents = Object.values(students)
+                    .filter(s => s.totalTime > 0)
+                    .sort((a, b) => b.totalTime - a.totalTime)
+                    .slice(0, 5);
+
+                if (topStudents.length > 0) {
+                    const applesHTML = topStudents.map(s => {
+                        const mins = Math.floor(s.totalTime / 60);
+                        return `<span style="display:inline-block; margin:2px 4px; background:#fff3e0; border:1px solid #ffb74d; border-radius:8px; padding:2px 6px;">🍎 <b>${s.number}번</b> (${mins}분)</span>`;
+                    }).join('');
+                    appleStudentsEl.innerHTML = '🍎 열매 학생:<br>' + applesHTML;
+                    appleStudentsEl.style.display = 'block';
+                } else {
+                    appleStudentsEl.style.display = 'none';
+                }
+            }
+
+            document.getElementById('treeInfo').textContent = `${stageName} (${totalMinutes}분)`;
+            document.getElementById('detailedTreeInfo').innerHTML = `
+                현재 ${stageName}<br>
+                누적 시간: ${totalMinutes}분
+            `;
+
+            const sorted = Object.values(students)
+                .filter(s => s.totalTime > 0)
+                .sort((a, b) => b.totalTime - a.totalTime)
+                .slice(0, 5);
+
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = sorted.map((s, idx) => {
+                const minutes = Math.floor(s.totalTime / 60);
+                return `
+                    <div class="ranking-item">
+                        <span>${idx + 1}. ${s.number}번</span>
+                        <span>${minutes}분</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleRanking() {
+            const rankingList = document.getElementById('rankingList');
+            const toggleBtn = document.getElementById('rankingToggleBtn');
+            
+            isRankingVisible = !isRankingVisible;
+            
+            if (isRankingVisible) {
+                rankingList.style.display = 'block';
+                toggleBtn.textContent = '숨기기';
+            } else {
+                rankingList.style.display = 'none';
+                toggleBtn.textContent = '보이기';
+            }
+        }
+
+        function resetAllData() {
+            if (confirm("정말 모든 학생의 누적 독서 시간 기록을 0으로 지우시겠습니까?\n(이 작업은 되돌릴 수 없습니다)")) {
+                for (let i = 1; i <= 24; i++) {
+                    if (students[i]) {
+                        students[i].todayTime = 0;
+                        students[i].totalTime = 0;
+                        students[i].active = false;
+                    }
+                }
+                saveData();
+                renderStudents();
+                updateTreeAndRanking();
+                alert("모든 시간 기록이 0으로 초기화되었습니다.");
+                toggleSidebar();
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('currentTime').textContent = 
+                `${year}년 ${month}월 ${date}일 ${hours}:${minutes}:${seconds}`;
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function setTimer(minutes) {
+            currentTimer = minutes * 60;
+            document.getElementById('sidebar').classList.remove('active');
+        }
+
+        function toggleCustomTimer() {
+            const input = document.getElementById('customTimerInput');
+            input.style.display = input.style.display === 'none' ? 'block' : 'none';
+            if (input.style.display === 'block') {
+                input.focus();
+                input.onkeypress = (e) => {
+                    if (e.key === 'Enter') {
+                        const val = parseInt(input.value);
+                        if (val >= 1 && val <= 60) {
+                            setTimer(val);
+                            input.style.display = 'none';
+                        }
+                    }
+                };
+            }
+        }
+
+        function changeTitle() {
+            const newTitle = document.getElementById('titleInput').value.trim();
+            if (newTitle) {
+                document.getElementById('mainTitle').textContent = newTitle;
+                localStorage.setItem('mainTitle', newTitle);
+                document.getElementById('titleInput').value = '';
+                alert('제목이 변경되었습니다!');
+            } else {
+                alert('제목을 입력해주세요!');
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('students', JSON.stringify(students));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('students');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                for (let i = 1; i <= 24; i++) {
+                    if (parsed[i]) {
+                        students[i] = parsed[i];
+                        // 세션 로드시 active 상태는 꺼진 상태로 초기화 (타이머가 멈춰있는데 UI만 켜져있는 오류 방지)
+                        students[i].active = false;
+                    }
+                }
+            }
+
+            const savedTitle = localStorage.getItem('mainTitle');
+            if (savedTitle) {
+                document.getElementById('mainTitle').textContent = savedTitle;
+            }
+        }
+
+        function updateQuote() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('footerQuote').textContent = randomQuote;
+        }
+
+        initStudents();
+        updateTime();
+        updateQuote();
+        setInterval(updateTime, 1000);
+
+    </script>
+</body>
+</html>
