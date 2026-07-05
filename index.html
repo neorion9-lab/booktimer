@@ -445,7 +445,13 @@
 <body>
     <header>
         <div class="header-title" id="mainTitle">📖 북(Book)적북적 자람나무</div>
-        <div class="header-time" id="currentTime"></div>
+        <div class="header-time" style="display:flex; justify-content:center; align-items:center; gap:15px;">
+            <span id="currentTime"></span>
+            <div id="quickTimerDisplay" style="display:none; background:#ffcdd2; color:#b71c1c; padding:5px 15px; border-radius:15px; font-size:28px; border:2px solid #e53935; align-items:center; gap:10px;">
+                ⏱️ <span id="quickTimerText">00:00</span>
+                <button onclick="stopQuickTimer()" style="background:#e53935; color:white; border:none; border-radius:8px; padding:4px 10px; font-size:16px; cursor:pointer; font-family:'Jua', sans-serif;">종료</button>
+            </div>
+        </div>
         <div class="header-settings" onclick="toggleSidebar()">⚙️</div>
     </header>
 
@@ -481,7 +487,10 @@
                     <button class="menu-button" onclick="setTimer(15)">15분</button>
                     <button class="menu-button" onclick="setTimer(20)">20분</button>
                     <button class="menu-button" onclick="toggleCustomTimer()">직접 입력</button>
-                    <input type="number" id="customTimerInput" class="input-field" placeholder="1-60분" min="1" max="60" style="display:none;">
+                    <div id="customTimerContainer" style="display:none;">
+                        <input type="number" id="customTimerInput" class="input-field" placeholder="1-60분" min="1" max="60" style="margin-bottom:5px;">
+                        <button class="menu-button" onclick="startCustomTimer()" style="background-color:#c8e6c9; border-color:#81c784; width:100%;">시작</button>
+                    </div>
                 </div>
             </div>
 
@@ -541,6 +550,8 @@
         let students = {};
         let studentIntervals = {}; // 학생별 interval ID 저장
         let currentTimer = 15 * 60;
+        let quickTimerInterval = null;
+        let quickTimerSeconds = 0;
         let studentCount = parseInt(localStorage.getItem('studentCount')) || 24;
         let isRankingVisible = true;
         const quotes = [
@@ -828,24 +839,67 @@
         }
 
         function setTimer(minutes) {
-            currentTimer = minutes * 60;
+            quickTimerSeconds = minutes * 60;
             document.getElementById('sidebar').classList.remove('active');
+            
+            const displayEl = document.getElementById('quickTimerDisplay');
+            displayEl.style.display = 'flex';
+            
+            updateQuickTimerUI();
+            
+            if (quickTimerInterval) {
+                clearInterval(quickTimerInterval);
+            }
+            
+            quickTimerInterval = setInterval(() => {
+                quickTimerSeconds--;
+                if (quickTimerSeconds <= 0) {
+                    stopQuickTimer();
+                    alert("⏱️ 퀵 타이머가 종료되었습니다!");
+                } else {
+                    updateQuickTimerUI();
+                }
+            }, 1000);
+        }
+
+        function updateQuickTimerUI() {
+            const m = Math.floor(quickTimerSeconds / 60);
+            const s = quickTimerSeconds % 60;
+            document.getElementById('quickTimerText').textContent = 
+                `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function stopQuickTimer() {
+            if (quickTimerInterval) {
+                clearInterval(quickTimerInterval);
+                quickTimerInterval = null;
+            }
+            document.getElementById('quickTimerDisplay').style.display = 'none';
         }
 
         function toggleCustomTimer() {
+            const container = document.getElementById('customTimerContainer');
             const input = document.getElementById('customTimerInput');
-            input.style.display = input.style.display === 'none' ? 'block' : 'none';
-            if (input.style.display === 'block') {
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+            if (container.style.display === 'block') {
                 input.focus();
                 input.onkeypress = (e) => {
                     if (e.key === 'Enter') {
-                        const val = parseInt(input.value);
-                        if (val >= 1 && val <= 60) {
-                            setTimer(val);
-                            input.style.display = 'none';
-                        }
+                        startCustomTimer();
                     }
                 };
+            }
+        }
+
+        function startCustomTimer() {
+            const input = document.getElementById('customTimerInput');
+            const val = parseInt(input.value);
+            if (val >= 1 && val <= 60) {
+                setTimer(val);
+                document.getElementById('customTimerContainer').style.display = 'none';
+                input.value = '';
+            } else {
+                alert('1에서 60 사이의 숫자를 입력해주세요.');
             }
         }
 
