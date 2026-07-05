@@ -16,6 +16,9 @@
             font-family: 'Jua', sans-serif;
             background-color: #e8f5e9;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
         /* 헤더 */
@@ -27,6 +30,7 @@
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             height: 80px;
+            flex-shrink: 0;
         }
 
         .header-title {
@@ -65,7 +69,8 @@
         /* 메인 컨테이너 */
         .main-container {
             display: flex;
-            height: calc(100vh - 80px);
+            flex: 1;
+            min-height: 0;
         }
 
         /* 왼쪽 패널 (넓게 조정) */
@@ -358,6 +363,7 @@
             font-family: 'Jua', sans-serif;
             font-size: 14px;
             border-top: 2px solid #33691e;
+            flex-shrink: 0;
         }
 
         .footer-quote {
