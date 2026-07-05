@@ -728,7 +728,7 @@
                 if (remainder < 250) {
                     currentStageEmoji = '🌱';
                     stageName = '새싹 단계';
-                    showApples = false;
+                    showApples = (cycle > 0);
                 } else if (remainder < 500) {
                     currentStageEmoji = '🌿';
                     stageName = '잎사귀 나무';
@@ -748,7 +748,7 @@
             const appleStudentsEl = document.getElementById('appleStudents');
             document.getElementById('treeVisual').innerHTML = treesHTML;
 
-            if (showApples || cycle > 0) {
+            if (showApples) {
                 const allStudents = Object.values(students)
                     .filter(s => s.totalTime > 0)
                     .sort((a, b) => b.totalTime - a.totalTime);
