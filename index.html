@@ -464,7 +464,7 @@
 
             <div class="ranking">
                 <div class="ranking-header">
-                    <div class="ranking-title">📚 상위 독서 학생</div>
+                    <div class="ranking-title">📚 독서 학생 랭킹</div>
                     <button class="toggle-btn" onclick="toggleRanking()" id="rankingToggleBtn">숨기기</button>
                 </div>
                 <div id="rankingList"></div>
@@ -692,47 +692,58 @@
 
             const totalMinutes = Math.floor(totalTime / 60);
 
-            let stage, emoji, stageName;
-            const appleStudentsEl = document.getElementById('appleStudents');
+            let cycle = Math.floor(totalMinutes / 1000);
+            let remainder = totalMinutes % 1000;
+            
+            if (cycle >= 5) {
+                cycle = 4;
+                remainder = 1000;
+            }
 
-            if (totalMinutes < 250) {
-                stage = 0;
-                emoji = '🌱';
-                stageName = '새싹 단계';
-                document.getElementById('treeVisual').textContent = emoji;
-                appleStudentsEl.style.display = 'none';
-            } else if (totalMinutes < 500) {
-                stage = 1;
-                emoji = '🌿';
-                stageName = '잎사귀 나무';
-                document.getElementById('treeVisual').textContent = emoji;
-                appleStudentsEl.style.display = 'none';
-            } else if (totalMinutes < 750) {
-                stage = 2;
-                emoji = '🌳';
-                stageName = '꽃 피는 나무';
-                document.getElementById('treeVisual').textContent = emoji;
-                appleStudentsEl.style.display = 'none';
-            } else if (totalMinutes < 1000) {
-                stage = 3;
-                emoji = '🌲';
-                stageName = '열매 맺는 나무';
-                document.getElementById('treeVisual').textContent = emoji;
-                appleStudentsEl.style.display = 'none';
+            let treesHTML = '';
+            for(let i=0; i<cycle; i++) {
+                treesHTML += '<span style="margin: 0 2px;">🌳</span>';
+            }
+
+            let currentStageEmoji = '';
+            let stageName = '';
+            let showApples = false;
+
+            if (remainder === 1000) {
+                treesHTML += '<span style="margin: 0 2px;">🌳</span>';
+                stageName = '사과 열매 나무 (최대 성장)';
+                showApples = true;
             } else {
-                stage = 4;
-                emoji = '🌳';
-                stageName = '사과 열매 나무';
-                document.getElementById('treeVisual').textContent = emoji;
+                if (remainder < 250) {
+                    currentStageEmoji = '🌱';
+                    stageName = '새싹 단계';
+                    showApples = false;
+                } else if (remainder < 500) {
+                    currentStageEmoji = '🌿';
+                    stageName = '잎사귀 나무';
+                    showApples = false;
+                } else if (remainder < 750) {
+                    currentStageEmoji = '🌸';
+                    stageName = '꽃 피는 나무';
+                    showApples = false;
+                } else {
+                    currentStageEmoji = '🌳';
+                    stageName = '사과 열매 나무';
+                    showApples = true;
+                }
+                treesHTML += `<span style="margin: 0 2px;">${currentStageEmoji}</span>`;
+            }
 
-                // 독서 누적 시간 상위 학생(최대 5명)을 사과 이모지와 번호로 표시
-                const topStudents = Object.values(students)
+            const appleStudentsEl = document.getElementById('appleStudents');
+            document.getElementById('treeVisual').innerHTML = treesHTML;
+
+            if (showApples || cycle > 0) {
+                const allStudents = Object.values(students)
                     .filter(s => s.totalTime > 0)
-                    .sort((a, b) => b.totalTime - a.totalTime)
-                    .slice(0, 5);
+                    .sort((a, b) => b.totalTime - a.totalTime);
 
-                if (topStudents.length > 0) {
-                    const applesHTML = topStudents.map(s => {
+                if (allStudents.length > 0) {
+                    const applesHTML = allStudents.map(s => {
                         const mins = Math.floor(s.totalTime / 60);
                         return `<span style="display:inline-block; margin:2px 4px; background:#fff3e0; border:1px solid #ffb74d; border-radius:8px; padding:2px 6px;">🍎 <b>${s.number}번</b> (${mins}분)</span>`;
                     }).join('');
@@ -741,6 +752,8 @@
                 } else {
                     appleStudentsEl.style.display = 'none';
                 }
+            } else {
+                appleStudentsEl.style.display = 'none';
             }
 
             document.getElementById('treeInfo').textContent = `${stageName} (${totalMinutes}분)`;
@@ -751,8 +764,7 @@
 
             const sorted = Object.values(students)
                 .filter(s => s.totalTime > 0)
-                .sort((a, b) => b.totalTime - a.totalTime)
-                .slice(0, 5);
+                .sort((a, b) => b.totalTime - a.totalTime);
 
             const rankingList = document.getElementById('rankingList');
             rankingList.innerHTML = sorted.map((s, idx) => {
