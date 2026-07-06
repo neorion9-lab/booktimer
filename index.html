@@ -757,7 +757,10 @@
 
             if (showApples) {
                 const allStudents = Object.values(students)
-                    .filter(s => s.totalTime > 0)
+                    .filter(s => {
+                        const mins = Math.floor(s.totalTime / 60);
+                        return mins > 0 && (mins % 1000) >= 500;
+                    })
                     .sort((a, b) => b.totalTime - a.totalTime);
 
                 if (allStudents.length > 0) {
